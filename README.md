@@ -226,7 +226,13 @@ of the recipe). It allows you to:
 Workflow
 --------
 
-You may use the following recepe to perform a migration:
+First, add the following line in your Gemfile:
+
+```ruby
+gem 'mongoid_lazy_migration'
+```
+
+Follow the following steps to perform a migration:
 
 1. Run `rake db:mongoid:cleanup[Model]` just to be safe.
 2. Include Mongoid::LazyMigration in your document and write your migration
