@@ -124,7 +124,7 @@ class GroupOfPeople
   has_many :people
 
   migration(:lock => true) do
-    people.names.each do |name|
+    people_names.each do |name|
       self.people.create(:name => name)
     end
   end
