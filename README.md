@@ -1,6 +1,8 @@
 Mongoid Lazy Migration
 ======================
 
+![Build Status](https://secure.travis-ci.org/nviennot/mongoid_lazy_migration.png?branch=master)
+
 LazyMigration allows you to migrate your document on the fly.
 The migration is run when an instance of your model is initialized.
 While your frontend servers are migrating the documents on demand, some workers
@@ -235,6 +237,13 @@ You may use the following recepe to perform a migration:
 5. Remove the migration block from your model.
 6. Deploy.
 7. Run `rake db:mongoid:cleanup[Model]`.
+
+Compatibility
+-------------
+
+LazyMigration is tested against against MRI 1.8.7, 1.9.2, 1.9.3, JRuby-1.8, JRuby-1.9.
+
+Only Mongoid 2.4.x is currently supported.
 
 License
 -------
