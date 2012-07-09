@@ -189,7 +189,7 @@ Once all the document have their migration state equal to done, you must
 cleanup your collection (removing the migration_state field) to clear some
 database space, and to ensure that you can run a future migration.
 
-The two ways to cleanup a model are:
+The two ways to cleanup a collection are:
 
 ```ruby
 # programmatically
@@ -201,6 +201,8 @@ rake db:mongoid:cleanup_migration[Model]
 
 The cleanup process will be aborted if any of the document migrations are still
 in the processing state, or if you haven't removed the migration block.
+
+Once done, remove the migration block from the model.
 
 Important Considerations
 ------------------------
