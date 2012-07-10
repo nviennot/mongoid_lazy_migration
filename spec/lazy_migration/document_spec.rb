@@ -112,4 +112,12 @@ describe Mongoid::LazyMigration::Document, ".migration" do
     id = ModelInvalid.collection.insert({})
     proc { ModelInvalid.find(id) }.should raise_error
   end
+
+  describe "#atomic_selector" do
+    it 'returns the original selector when not doing a migration' do
+      m = ModelAtomic.create
+      m.atomic_selector.should == { "_id" => m._id }
+    end
+  end
+
 end

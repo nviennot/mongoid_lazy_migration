@@ -9,7 +9,9 @@ module Mongoid::LazyMigration::Document
   end
 
   def atomic_selector
-    if @running_migrate_block && !self.class.lock_migration
+    return super unless @running_migrate_block
+
+    unless self.class.lock_migration
         raise ["You cannot save during an atomic migration,",
                "You are only allowed to set the document fields",
                "The document will be commited once the migration is complete.",

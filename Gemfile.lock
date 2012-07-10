@@ -3,7 +3,7 @@ PATH
   specs:
     mongoid_lazy_migration (0.2)
       activesupport
-      mongoid
+      mongoid (~> 2.4)
       progressbar
 
 GEM
