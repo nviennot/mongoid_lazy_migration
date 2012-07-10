@@ -239,14 +239,14 @@ gem 'mongoid_lazy_migration'
 
 Follow the following steps to perform a migration:
 
-1. Run `rake db:mongoid:cleanup[Model]` just to be safe.
+1. Run `rake db:mongoid:cleanup_migration[Model]` just to be safe (optional for gurus).
 2. Include `Mongoid::LazyMigration` in your document and write your migration.
    Modify your application code to reflect the changes from the migration.
 3. Deploy.
 4. Run `rake db:mongoid:migrate`.
 5. Remove the migration block from your model.
 6. Deploy.
-7. Run `rake db:mongoid:cleanup[Model]`.
+7. Run `rake db:mongoid:cleanup_migration[Model]`.
 
 Compatibility
 -------------
