@@ -3,45 +3,50 @@ Mongoid Lazy Migration
 
 [![Build Status](https://secure.travis-ci.org/nviennot/mongoid_lazy_migration.png?branch=master)](http://travis-ci.org/nviennot/mongoid_lazy_migration)
 
-LazyMigration allows you to migrate your document on the fly.
-The migration is run when an instance of your model is initialized.
-While your frontend servers are migrating the documents on demand, some workers
-traverse the collection to migrate all the documents.
+LazyMigration allows you to migrate a Mongoid collection on the fly. As
+instances of your model are initialized, the migration is run. In the
+background, workers can traverse the collection and migrate other documents.
+Thus, your application acts as though your migration as already taken place.
 
-It allows your application logic to be tolerant from having only a portion of
-the collection migrated. We use it at [Crowdtap](http://crowdtap.it/about-us).
+LazyMigration can be used for any app which uses Mongoid. It is most commonly
+used for Rails apps. We use it at [Crowdtap](http://crowdtap.it/about-us).
 
-LazyMigration is designed to support only one production environment. There are
-no versioning as opposed to traditional ActiveRecord migrations.
-With this in mind, the migration code is directly implemented in the model
-itself, as opposed to having a decorator.
-Once the migration is complete, the migration code must be deleted, and code
-must be redeployed before cleaning up the database.
 
-LazyMigration has two modes of operations: *atomic* and *locked*.
-Atomic is the default one, which is less prone to fuck ups, but adds
-constrains on what you can do during your migration.
+Workflow
+--------
 
-Atomic Mode
------------
+Once installed with
 
-Your migration code must respect a few constrains:
+```ruby
+gem 'mongoid_lazy_migration'
+```
 
-1. Your migrate code should never write anything to the database.
-   You should not call save yourself, but let LazyMigration do it.
-   Basically you are only allowed to set some document fields.
-2. Your migrate code should be deterministic (don't play with Random)
-   to keep some sort of consistency even in the presence of races with
-   migrations.
+You can use the following recipe to perform a migration:
 
-When multiple clients are trying to perform the migration at the same
-time, all of them will run the migration code, but only one will commit
-the changes to the database.
-After the migration, the document will not be reloaded, regardless if the
-write to the database happened. This implies that the field values are
-the one from the migration, and may not correspond to what is actually in
-the database. Which is why using a non deterministic migration is not
-recommended.
+1. Include Mongoid::LazyMigration in your document and write your migration
+   specification. Modify your application code to reflect the changes from the
+   migration.
+2. Deploy.
+3. Run `rake db:mongoid:migrate`.
+4. Remove the migration block from your model.
+5. Deploy.
+6. Run `rake db:mongoid:cleanup[Model]`.
+
+The migration specification can be written in one of two modes: *atomic* or
+*locked*. Atomic is the default, and is tolerant to dying workers, but it
+introduces some constraints on your migration.
+
+Atomic Mode (default)
+---------------------
+
+### Constraints
+
+Atomic migration code must respect a few constrains:
+
+1. It can never write anything to the database. This means you should not call
+   save yourself; LazyMigration will do this for you. Essentially, you should
+   only be setting document fields.
+2. It must be deterministic to ensure consistency in the face of migration races.
 
 ### Migration States
 
@@ -53,7 +58,7 @@ A document migration goes through the following states:
 ### Atomic Migration Example
 
 Suppose we have a model GroupOfPeople with two fields: num_males and
-num_females. We wish to add a field num_people. Here is how it goes:
+num_females. We wish to add the field num_people. We can do this as follows:
 
 ```ruby
 class GroupOfPeople
@@ -68,6 +73,8 @@ class GroupOfPeople
     self.num_people = num_males + num_females
   end
 
+  # This can be used by other code while the migration is running
+  # because it is atomic
   def inc_num_people
     self.inc(:num_people, 1)
   end
@@ -80,19 +87,18 @@ because only one client will be able to commit the migration to the database.
 Locked Mode
 -----------
 
-The locked mode  guarantees that only one client will run the migration code,
-because a lock is taken. As a consequence, your migration code can pretty much
-do anything.
+Locked mode guarantees that only one client will run the migration code, because
+it uses locking. Thus, the restrictions on an atomic migration are removed.
 
-In case of contention, the other clients will have to wait until the migration
-is complete. This has some heavy consequences: if the owner of the lock dies
-(exception, ctrl+c, lost the ssh connection, asteroid crashes on your
-datacenter, ...) the document will stay locked in the processing state. There
-is no rollback. You are responsible to clean up the mess. Be aware that you
-cannot instantiate a document stuck in locked state state without removing
-the migration block.
+However, this has some consequences. Most importantly, if the owner of the lock
+dies (exception, ctrl+c, a lost ssh connection, an explosion in your
+datacenter, etc.), the document will stay locked in the processing state.
+There is no automatic rollback. You are responsible for cleaning up. Be aware
+that you cannot instantiate a document stuck in locked state state without
+removing the migration block.
 
-Because of the locking, a locked migration runs slower than an atomic one.
+Because the lock involves additional database requests, including writes,
+a locked migration runs slower than an atomic one.
 
 ### Migration States
 
@@ -105,8 +111,9 @@ A document migration goes through the following states:
 ### Locked Migration Example
 
 Suppose we have a model GroupOfPeople with an array people_names, which is an
-array of strings. Our migration consists of introducing a new model Person, and
-removing the array people_names from GroupOfPeople. Here it goes:
+
+an array of strings. Our migration consists of introducing a new model called
+Person and removing the array people_names from GroupOfPeople.
 
 ```ruby
 class Person
@@ -131,56 +138,56 @@ class GroupOfPeople
 end
 ```
 
+We cannot perform an atomic migration in this case because new documents are
+created while running the migration block.  In locked mode, we are guaranteed
+that we only create the associations once.
+
 Since only one client can execute the migration block, we are guaranteed that
 we only create the associations once.
 
-Just to be safe, we don't unset the people_names in the migration. It would
-be done manually once the migration is complete.
+Notice that we don't unset the people_names field in the migration. We keep it
+until the entire collection has migrated allowing us to rollback in case of
+failure.
 
 Background Migration
 --------------------
 
-While the frontend servers are migrating models on demand, it is recommended to
-migrate the rest of the collection in the background.
+While the some of your server migrating models on demand, it is recommended to
+migrate the rest of the collection in the background. Otherwise, if one
+document in your collection is not accessed for a year, your migration will
+take one year to complete.
 
-It can be done programmatically:
-
-```ruby
-# migrate all the models that have a migration block.
-Mongoid::LazyMigration.migrate
-
-# migrate only Model.
-Mongoid::LazyMigration.migrate(Model)
-
-# migrate only active documents of Model.
-Mongoid::LazyMigration.migrate(Model.where(:active => true))
-```
-
-A rake task is provided wrapping the migrate method:
+A rake task is provided:
 
 ```ruby
+# Migrate all the documents that have a pending migration
 rake db:mongoid:migrate
-rake db:mongoid:migrate[Model]
-rake db:mongoid:migrate[Model.where(:active => true)]
+
+# Migrate all the documents of GroupOfPeople
+rake db:mongoid:migrate[GroupOfPeople]
+
+# Migrate all the documents of GroupOfPeople that have specific people in the group
+rake db:mongoid:migrate[GroupOfPeople.where(:people_names.in => ["marie", "joelle"])]
 ```
 
-Both methods display a progress bar.
+Note that you might need to use single quotes around the whole rake argument,
+otherwise your shell might be tempted to evaluate the expression.
 
-It is recommended to migrate the most accessed documents first so they don't
-need to be migrated when a user requests them. It is also possible to use
-multiple workers. Example:
+The task displays a progress bar.
 
-Worker 1:
-```ruby
-rake db:mongoid:migrate[User.where(:shard => 1, :active => true)]
-rake db:mongoid:migrate[User.where(:shard => 1, :active => false)]
-```
+For performance, it is recommended to migrate the most accessed documents first
+so they don't need to be migrated when a user requests them. You can also use
+multiple workers on different shards.
 
-Worker 2:
-```ruby
-rake db:mongoid:migrate[User.where(:shard => 2, :active => false)]
-rake db:mongoid:migrate[User.where(:shard => 2, :active => true)]
-```
+If your database doesn't fit entirely in memory, be very careful when migrating
+rarely accessed documents since your working set may be evicted from cache.
+MongoDB could start trashing in unexpected ways.
+
+The migration is be performed one document at a time, so we avoid holding up
+the global lock on MongoDB for long period of time.
+
+Only atomic migration can be safely aborted with Ctrl+C. Support for aborting a
+locked migration will be added in the future.
 
 Cleaning up
 -----------
@@ -189,64 +196,42 @@ Once all the document have their migration state equal to done, you must do two 
 
 1. Remove the migration block from your model.
 2. Cleanup the database (removing the migration_state field) to ensure that you
-   can run a future migration.
-
-The two ways to cleanup a collection are:
+   can run a future migration with the following rake task:
 
 ```ruby
-# programmatically
-Mongoid::LazyMigration.cleanup(Model)
-
-# rake task
 rake db:mongoid:cleanup_migration[Model]
 ```
 
 The cleanup process will be aborted if any of the document migrations are still
-in the processing state, or if you haven't removed the migration block.
+the processing state or if you haven't removed the migration block.
 
 Important Considerations
 ------------------------
 
 A couple of points that you need to be aware of:
 
+* save() will be called on the document once done with the migration. Don't
+  do it yourself. It's racy in atomic mode and unnecessary in locked mode.
+* save and update callbacks will not be called when persisting the migration.
+* No validation will be performed during the migration.
+* The migration will not update the `updated_at` field.
+* LazyMigration is designed to support a single production environment and does
+  not support versioning, unlike traditional ActiveRecord migrations. Thus, the
+  migration code can be included directly in the model and can be removed after
+  migration is done.
 * Because the migrations are run during the model instantiation,
   using some query like `Member.count` will not perform any migration.
-  With the same rational, If you do something sneaky in your application by
-  interacting directly with the mongo driver and bypassing mongoid, you are on
-  your own.
+  Similarly, if you bypass Mongoid and use the Mongo driver directly in your
+  application, LazyMigration might not be run.
 * If you use only() in some of your queries, make sure that you include the
   migration_state field.
 * Do not use identity maps and threads at the same time. It is currently
-  unsupported, but support may be added in the future.
+  unsupported, though support may be added in the future.
 * Make sure you can migrate a document quickly, because migrations will be
   performed while processing user requests.
 * SlaveOk is fine, even in locked mode.
-* save() will be called on the document once done with the migration, don't
-  do it yourself.
-* The save and update callbacks will not be called when persisting the
-  migration.
-* No validation will be performed during the migration.
-* The migration will not update the updated_at field.
-
-Workflow
---------
-
-First, add the following line in your Gemfile:
-
-```ruby
-gem 'mongoid_lazy_migration'
-```
-
-Follow the following steps to perform a migration:
-
-1. Run `rake db:mongoid:cleanup_migration[Model]` just to be safe (optional for gurus).
-2. Include `Mongoid::LazyMigration` in your document and write your migration.
-   Modify your application code to reflect the changes from the migration.
-3. Deploy.
-4. Run `rake db:mongoid:migrate`.
-5. Remove the migration block from your model.
-6. Deploy.
-7. Run `rake db:mongoid:cleanup_migration[Model]`.
+* You might want to try a migration on a staging environment which replicates a
+  production workload to evaluate the impact of the lazy migration.
 
 Compatibility
 -------------
