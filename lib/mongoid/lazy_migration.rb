@@ -11,6 +11,9 @@ module Mongoid
     extend ActiveSupport::Concern
     extend Tasks
 
+    mattr_reader :mongoid3
+    @@mongoid3 = Gem.loaded_specs['mongoid'].version >= Gem::Version.new('3.0.0')
+
     mattr_reader :models_to_migrate
     @@models_to_migrate = Set.new
 

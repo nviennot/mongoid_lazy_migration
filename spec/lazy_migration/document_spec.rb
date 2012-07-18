@@ -1,10 +1,16 @@
 require 'spec_helper'
 require 'support/models'
 
+def insert_raw(type, fields={})
+  id = BSON::ObjectId.new
+  type.collection.insert({:_id => id}.merge(fields))
+  id
+end
+
 describe Mongoid::LazyMigration::Document, ".migration(lock)" do
-  let(:pending)    { ModelLock.collection.insert({})}
-  let(:processing) { ModelLock.collection.insert(:migration_state => :processing) }
-  let(:done)       { ModelLock.collection.insert(:migration_state => :done) }
+  let(:pending)    { insert_raw(ModelLock) }
+  let(:processing) { insert_raw(ModelLock, :migration_state => :processing) }
+  let(:done)       { insert_raw(ModelLock, :migration_state => :done) }
 
   it "migrates pending models on fetch" do
     ModelLock.find(pending).migrated.should == true
@@ -32,9 +38,9 @@ describe Mongoid::LazyMigration::Document, ".migration(lock)" do
 end
 
 describe Mongoid::LazyMigration::Document, ".migration(atomic)" do
-  let(:pending)    { ModelAtomic.collection.insert({})}
-  let(:processing) { ModelAtomic.collection.insert(:migration_state => :processing) }
-  let(:done)       { ModelAtomic.collection.insert(:migration_state => :done) }
+  let(:pending)    { insert_raw(ModelAtomic) }
+  let(:processing) { insert_raw(ModelAtomic, :migration_state => :processing) }
+  let(:done)       { insert_raw(ModelAtomic, :migration_state => :done) }
 
   it "migrates pending models on fetch" do
     ModelAtomic.find(pending).migrated.should == true
@@ -67,7 +73,7 @@ describe Mongoid::LazyMigration::Document, ".migration" do
     end
     Mongoid::LazyMigration.models_to_migrate.delete(ModelCallbacks)
 
-    id = ModelCallbacks.collection.insert({})
+    id = insert_raw(ModelCallbacks)
     model = ModelCallbacks.find(id)
     ModelCallbacks.callback_called.should == 0
 
@@ -91,7 +97,7 @@ describe Mongoid::LazyMigration::Document, ".migration" do
     end
     Mongoid::LazyMigration.models_to_migrate.delete(ModelValidate)
 
-    id = ModelValidate.collection.insert({})
+    id = insert_raw(ModelValidate)
     ModelValidate.find(id)
     ModelValidate.find(id)
     ModelValidate.migration_count.should == 1
@@ -109,7 +115,7 @@ describe Mongoid::LazyMigration::Document, ".migration" do
     end
     Mongoid::LazyMigration.models_to_migrate.delete(ModelInvalid)
 
-    id = ModelInvalid.collection.insert({})
+    id = insert_raw(ModelInvalid)
     proc { ModelInvalid.find(id) }.should raise_error
   end
 

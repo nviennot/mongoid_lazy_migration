@@ -63,10 +63,16 @@ module Mongoid::LazyMigration::Document
     # transitions from the pending to the progress state. This operation is
     # done atomically by MongoDB (test and set).
     self.migration_state = :processing
-    collection.update(
-      atomic_selector.merge(:migration_state => { "$in" => [nil, :pending] }),
-      { "$set" => { :migration_state => :processing }},
-      { :safe => true })['updatedExisting']
+
+    selector = atomic_selector.merge(:migration_state => { "$in" => [nil, :pending] })
+    changes  = { "$set" => { :migration_state => :processing }}
+    safety   = { :safe => true }
+
+    if Mongoid::LazyMigration.mongoid3
+      self.class.with(safety).where(selector).query.update(changes)
+    else
+      collection.update( selector, changes, safety)
+    end['updatedExisting']
   end
 
   def wait_for_completion

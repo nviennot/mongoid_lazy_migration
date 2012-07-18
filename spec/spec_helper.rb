@@ -7,9 +7,14 @@ PORT = ENV['MONGOID_SPEC_PORT'] || '27017'
 DATABASE = 'mongoid_lazy_migration_test'
 
 Mongoid.configure do |config|
-  database = Mongo::Connection.new(HOST, PORT.to_i).db(DATABASE)
-  config.master = database
-  config.logger = nil
+  if Mongoid::LazyMigration.mongoid3
+    config.connect_to(DATABASE)
+    ::BSON = ::Moped::BSON
+  else
+    database = Mongo::Connection.new(HOST, PORT.to_i).db(DATABASE)
+    config.master = database
+    config.logger = nil
+  end
 end
 
 RSpec.configure do |config|
@@ -17,15 +22,15 @@ RSpec.configure do |config|
   config.color_enabled = true
 
   config.before(:each) do
-    Mongoid.database.collections.each do |collection|
-      unless collection.name.include?('system')
-        collection.remove
+  if Mongoid::LazyMigration.mongoid3
+      Mongoid.purge!
+    else
+      Mongoid.database.collections.each do |collection|
+        unless collection.name.include?('system')
+          collection.remove
+        end
       end
     end
     Mongoid::IdentityMap.clear
-  end
-
-  config.after(:suite) do
-    Mongoid.master.connection.drop_database(DATABASE)
   end
 end

@@ -238,7 +238,7 @@ Compatibility
 
 LazyMigration is tested against against MRI 1.8.7, 1.9.2, 1.9.3, JRuby-1.8, JRuby-1.9.
 
-Only Mongoid 2.4.x is currently supported.
+Both Mongoid 2.4.x and Mongoid 3.0.x are supported.
 
 License
 -------

@@ -25,9 +25,15 @@ module Mongoid::LazyMigration::Tasks
              "Don't forget to remove the migration block"].join("\n")
     end
 
-    model.collection.update(
-      { :migration_state => { "$exists" => true }},
-      {"$unset" => { :migration_state => 1}},
-      { :safe => true, :multi => true })
+    selector = { :migration_state => { "$exists" => true }}
+    changes  = {"$unset" => { :migration_state => 1}}
+    safety   = { :safe => true, :multi => true }
+    multi    = { :multi => true }
+
+    if Mongoid::LazyMigration.mongoid3
+      model.with(safety).where(selector).query.update(changes, multi)
+    else
+      model.collection.update(selector, changes, safety.merge(multi))
+    end
   end
 end
