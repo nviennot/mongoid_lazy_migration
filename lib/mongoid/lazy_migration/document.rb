@@ -9,9 +9,9 @@ module Mongoid::LazyMigration::Document
   end
 
   def atomic_selector
-    return super unless @running_migrate_block
+    return super unless @migrating
 
-    unless self.class.lock_migration
+    if @running_migrate_block && !self.class.lock_migration
         raise ["You cannot save during an atomic migration,",
                "You are only allowed to set the document fields",
                "The document will be commited once the migration is complete.",
@@ -19,20 +19,22 @@ module Mongoid::LazyMigration::Document
         ].join("\n")
     end
 
+    # see perform migration
     super.merge(:migration_state => { "$ne" => :done })
   end
 
   def run_callbacks(*args, &block)
-    if @migrating
-      block.call if block
-    else
-      super(*args, &block)
-    end
+    return super(*args, &block) unless @migrating
+
+    block.call if block
   end
 
   private
 
   def perform_migration
+    # For locked migrations, perform_migration is bypassed when raced by
+    # another client. We busy wait until the other client is done with the
+    # migration in wait_for_completion.
     return if self.class.lock_migration && !try_lock_migration
 
     begin
