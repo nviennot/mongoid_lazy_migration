@@ -20,14 +20,6 @@ describe Mongoid::LazyMigration::Document, ".migration(lock)" do
     ModelLock.find(done).migrated.should_not == true
   end
 
-  it "busy waits when a model has a migration in process" do
-    # I don't know how to test this.
-  end
-
-  it "never lets two migrations happen at the same time on the same model" do
-    # I don't know how to test this.
-  end
-
   it "doesn't update the updated_at field during the migration" do
     model = ModelLock.find(pending)
     model.updated_at.should == nil
@@ -35,6 +27,10 @@ describe Mongoid::LazyMigration::Document, ".migration(lock)" do
     model.save
     model.updated_at.should_not == nil
   end
+
+  # I don't know how to test this. Please help.
+  it "busy waits when a model has a migration in process"
+  it "never lets two migrations happen at the same time on the same model"
 end
 
 describe Mongoid::LazyMigration::Document, ".migration(atomic)" do
@@ -50,9 +46,8 @@ describe Mongoid::LazyMigration::Document, ".migration(atomic)" do
     ModelAtomic.find(done).migrated.should_not == true
   end
 
-  it "never lets two migrations to be commit to the database for the same model" do
-    # I don't know how to test this.
-  end
+  # I don't know how to test this. Please help.
+  it "never lets two migrations to be commit to the database for the same model"
 end
 
 describe Mongoid::LazyMigration::Document, ".migration" do
