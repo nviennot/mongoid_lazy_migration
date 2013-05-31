@@ -4,8 +4,9 @@ gemspec
 ENV['MONGOID_VERSION'] ||= "3.0"
 
 group :test do
+  gem 'ruby-progressbar'
   gem 'rake'
-  gem 'mongoid', "~> #{ENV['MONGOID_VERSION']}"
+  gem 'mongoid', "#{ENV['MONGOID_VERSION']}"
   gem 'rspec'
   gem 'mocha', :require => false
 end

@@ -1,4 +1,4 @@
-require 'progressbar'
+require 'ruby-progressbar'
 
 class ProgressBar
   def clear; end

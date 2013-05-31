@@ -1,0 +1,53 @@
+PATH
+  remote: .
+  specs:
+    mongoid_lazy_migration (0.5.1)
+      activesupport
+      mongoid (>= 2.4)
+      ruby-progressbar
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activemodel (3.2.13)
+      activesupport (= 3.2.13)
+      builder (~> 3.0.0)
+    activesupport (3.2.13)
+      i18n (= 0.6.1)
+      multi_json (~> 1.0)
+    builder (3.0.4)
+    diff-lcs (1.2.4)
+    i18n (0.6.1)
+    metaclass (0.0.1)
+    mocha (0.14.0)
+      metaclass (~> 0.0.1)
+    mongoid (3.0.0)
+      activemodel (~> 3.1)
+      moped (~> 1.1.1)
+      origin (~> 1.0.3)
+      tzinfo (~> 0.3.22)
+    moped (1.1.6)
+    multi_json (1.7.4)
+    origin (1.0.11)
+    rake (10.0.4)
+    rspec (2.13.0)
+      rspec-core (~> 2.13.0)
+      rspec-expectations (~> 2.13.0)
+      rspec-mocks (~> 2.13.0)
+    rspec-core (2.13.1)
+    rspec-expectations (2.13.0)
+      diff-lcs (>= 1.1.3, < 2.0)
+    rspec-mocks (2.13.1)
+    ruby-progressbar (1.1.0)
+    tzinfo (0.3.37)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mocha
+  mongoid (= 3.0)
+  mongoid_lazy_migration!
+  rake
+  rspec
+  ruby-progressbar
