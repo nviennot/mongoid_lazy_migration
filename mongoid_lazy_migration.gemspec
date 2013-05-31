@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency("mongoid", ">= 2.4")
   s.add_dependency("activesupport")
-  s.add_dependency("progressbar")
+  s.add_dependency("ruby-progressbar")
 
   s.files        = Dir["lib/**/*"] + ['README.md']
   s.require_path = 'lib'
