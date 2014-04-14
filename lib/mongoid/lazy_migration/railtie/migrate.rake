@@ -1,7 +1,7 @@
 namespace :db do
   namespace :mongoid do
     desc 'Migrate the documents specified by criteria. criteria is optional'
-    task :migrate, [:criteria] => :environment do |t, args|
+    task :lazy_migrate, [:criteria] => :environment do |t, args|
       criteria = args.criteria ? eval(args.criteria) : nil
       Mongoid::LazyMigration.migrate(criteria)
     end

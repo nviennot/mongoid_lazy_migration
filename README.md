@@ -30,7 +30,7 @@ You can use the following recipe to perform a migration:
    specification. Modify your application code to reflect the changes from the
    migration.
 2. Deploy.
-3. Run `rake db:mongoid:migrate`.
+3. Run `rake db:mongoid:lazy_migrate`.
 4. Remove the migration block from your model.
 5. Deploy.
 6. Run `rake db:mongoid:cleanup[Model]`.
