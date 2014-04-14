@@ -3,11 +3,17 @@ module Mongoid::LazyMigration::Tasks
     require 'progressbar'
 
     criterias = criteria.nil? ? Mongoid::LazyMigration.models_to_migrate : [criteria]
+
     criterias.each do |criteria|
-      to_migrate = criteria.where(:migration_state.ne => :done)
+      to_migrate = criteria.where(:migration_state.ne => :done).batch_size(50)
       progress = ProgressBar.new(to_migrate.klass.to_s, to_migrate.count)
       progress.long_running
-      to_migrate.each { progress.inc }
+
+      to_migrate.each_with_index do |o, i|
+        progress.inc
+        sleep 0.07 if i % 100 == 0
+      end
+
       progress.finish
     end
     true
