@@ -24,6 +24,7 @@ module Mongoid::LazyMigration::Tasks
       raise "Remove the migration from your model before cleaning up the database"
     end
 
+    # @todo: the migration_state is not indexed, wouldn't this query kill DB?
     if model.where(:migration_state => :processing).limit(1).count > 0
       raise ["Some models are still being processed.",
              "Remove the migration code, and go inspect them with:",
