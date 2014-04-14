@@ -1,6 +1,9 @@
 Mongoid Lazy Migration
 ======================
 
+## (Temporary) This is a forked version, that aims to support only Mongoid in ver 3.1.6 +
+
+
 [![Build Status](https://secure.travis-ci.org/nviennot/mongoid_lazy_migration.png?branch=master)](http://travis-ci.org/nviennot/mongoid_lazy_migration)
 
 LazyMigration allows you to migrate a Mongoid collection on the fly. As

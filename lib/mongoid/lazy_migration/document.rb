@@ -20,7 +20,7 @@ module Mongoid::LazyMigration::Document
     end
 
     # see perform migration
-    super.merge(:migration_state => { "$ne" => :done })
+    super.merge('migration_state' => { "$ne" => 'done' })
   end
 
   def run_callbacks(*args, &block)
@@ -38,8 +38,7 @@ module Mongoid::LazyMigration::Document
     return if self.class.lock_migration && !try_lock_migration
 
     begin
-      self.class.skip_callback :create, :update
-      Mongoid::Threaded.timeless = true
+      self.class.skip_callback :create, :update, :set_updated_at
 
       @running_migrate_block = true
       instance_eval(&self.class.migrate_block)
@@ -55,8 +54,7 @@ module Mongoid::LazyMigration::Document
       self.migration_state = :done
       save(:validate => false)
     ensure
-      Mongoid::Threaded.timeless = false
-      self.class.set_callback :create, :update
+      self.class.set_callback :create, :update, :set_updated_at
     end
   end
 
@@ -66,8 +64,8 @@ module Mongoid::LazyMigration::Document
     # done atomically by MongoDB (test and set).
     self.migration_state = :processing
 
-    selector = atomic_selector.merge(:migration_state => { "$in" => [nil, :pending] })
-    changes  = { "$set" => { :migration_state => :processing }}
+    selector = atomic_selector.merge('migration_state' => { "$in" => [nil, 'pending'] })
+    changes  = { "$set" => { 'migration_state' => 'processing' }}
     safety   = { :safe => true }
 
     if Mongoid::LazyMigration.mongoid3
