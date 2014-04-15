@@ -1,0 +1,99 @@
+PATH
+  remote: .
+  specs:
+    mongoid_lazy_migration (0.6.0)
+      activesupport
+      mongoid (>= 3.1.6)
+      progressbar
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activemodel (3.2.17)
+      activesupport (= 3.2.17)
+      builder (~> 3.0.0)
+    activesupport (3.2.17)
+      i18n (~> 0.6, >= 0.6.4)
+      multi_json (~> 1.0)
+    binding_of_caller (0.7.2)
+      debug_inspector (>= 0.0.1)
+    bond (0.4.3)
+    builder (3.0.4)
+    coderay (1.0.9)
+    columnize (0.3.6)
+    debug_inspector (0.0.2)
+    debugger (1.6.1)
+      columnize (>= 0.3.1)
+      debugger-linecache (~> 1.2.0)
+      debugger-ruby_core_source (~> 1.2.3)
+    debugger-linecache (1.2.0)
+    debugger-ruby_core_source (1.2.3)
+    diff-lcs (1.2.5)
+    i18n (0.6.9)
+    interception (0.3)
+    jist (1.5.1)
+      json
+    json (1.8.0)
+    metaclass (0.0.4)
+    method_source (0.8.2)
+    mocha (1.0.0)
+      metaclass (~> 0.0.1)
+    mongoid (3.1.6)
+      activemodel (~> 3.2)
+      moped (~> 1.4)
+      origin (~> 1.0)
+      tzinfo (~> 0.3.29)
+    moped (1.5.2)
+    multi_json (1.9.2)
+    origin (1.1.0)
+    progressbar (0.21.0)
+    pry (0.9.12.2)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.4)
+    pry-debugger (0.2.2)
+      debugger (~> 1.3)
+      pry (~> 0.9.10)
+    pry-doc (0.4.6)
+      pry (>= 0.9)
+      yard (>= 0.8)
+    pry-docmore (0.1.1)
+      pry
+      pry-doc
+    pry-plus (1.0.0)
+      bond
+      jist
+      pry-debugger
+      pry-doc
+      pry-docmore
+      pry-rescue
+      pry-stack_explorer
+    pry-rescue (1.1.1)
+      interception (>= 0.3)
+      pry
+    pry-stack_explorer (0.4.9.1)
+      binding_of_caller (>= 0.7)
+      pry (>= 0.9.11)
+    rake (10.2.2)
+    rspec (2.14.1)
+      rspec-core (~> 2.14.0)
+      rspec-expectations (~> 2.14.0)
+      rspec-mocks (~> 2.14.0)
+    rspec-core (2.14.8)
+    rspec-expectations (2.14.5)
+      diff-lcs (>= 1.1.3, < 2.0)
+    rspec-mocks (2.14.6)
+    slop (3.4.6)
+    tzinfo (0.3.39)
+    yard (0.8.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mocha
+  mongoid (~> 3.1.6)
+  mongoid_lazy_migration!
+  pry-plus
+  rake
+  rspec

@@ -1,6 +1,9 @@
 Mongoid Lazy Migration
 ======================
 
+## (Temporary) This is a forked version, that aims to support only Mongoid in ver 3.1.6 +
+
+
 [![Build Status](https://secure.travis-ci.org/nviennot/mongoid_lazy_migration.png?branch=master)](http://travis-ci.org/nviennot/mongoid_lazy_migration)
 
 LazyMigration allows you to migrate a Mongoid collection on the fly. As
@@ -27,7 +30,7 @@ You can use the following recipe to perform a migration:
    specification. Modify your application code to reflect the changes from the
    migration.
 2. Deploy.
-3. Run `rake db:mongoid:migrate`.
+3. Run `rake db:mongoid:lazy_migrate`.
 4. Remove the migration block from your model.
 5. Deploy.
 6. Run `rake db:mongoid:cleanup[Model]`.
